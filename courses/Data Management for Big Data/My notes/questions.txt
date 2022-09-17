@@ -1,0 +1,7 @@
+What is OLTP and OLAP? What are the differences?
+Define the 3 Vs of Big Data
+What do the BASE properties stand for?
+What is stemming? Provide an example showing the usefulness of such an operation.
+Describe the ETL process phases
+Briefly describe what is a graph database, highlighting the difference between a native and a non native solution. Then, name a possible context of usage.
+Hadoop vs HPC, advantages

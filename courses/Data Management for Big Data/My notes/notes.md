@@ -192,15 +192,6 @@ Data is sorted according to the search key and stored sequentially
 ### Secondary index
 Tells us where the data lies, gives us the pointers to the data. The data is not physically stored in the order of the index
 
-## Transactions
-A Transaction is a unit of the program execution that accesses or updates data items. Ex: Transfer 50€ from account A to B  
-Issues: System failure mid-execution, concurrent execution of multiple transactions
-
-A transaction takes the database in a consistent state and leaves the database in a consistent state (PK, FK, integrity constraints satisfied). During the transactions these constrainsts can be broken
-
-We want to run transactions in parallel to speed-up their execution  
-
-
 # Query processing
 1. Parsing and translation: Check syntax and translate SQL into relational algebra
 2. Optimization: Chooses the "most efficent" query execution plan (QEP)
@@ -401,7 +392,8 @@ Query optimizers search all the QEP and choose the best in term of cost using he
 * Heuristics to avoid generating all plans (perform selections and projections early, perform most restrictive selections and joins before other ones, consider only left-deep joins)
 
 # Distributed DBMS
-Data physically distributed but logically centralized
+Data physically distributed but logically centralized.
+
 **Distrubuted computing** A number of autonomous processing elements that are interconnected by a computer network and cooperate in performing their assigned tasks.
 
 distr. DB systems : distr. processing = DM systems : centr. processing
@@ -437,7 +429,7 @@ Distributed DBMS complications:
 **CAP Theorem**, a DDB can't provide simultaneously:
 * Consistency, we always read updated data
 * Availability, every request receives a response
-* Partition tolerance, tolerance to netwoek communication failures
+* Partition tolerance, tolerance to network communication failures
 
 DMS classification:
 * Distribution: non-distributed vs client-server vs fully distributed.
@@ -455,7 +447,7 @@ Ex:
 We need to decide where data and programs reside across the sites of a computer network
 
 ### Reasons for fragmentation
-* Distributed FS are not fragmented (unit is teh file)
+* Distributed FS are not fragmented (unit is the file)
 * Fragmenting entire relations isn't good because applications commonly access a subset of a relation, i.e. $r$ is stored in Paris but application x accesses part of its contents from New York, leading to high communication costs -> we need to fragment the relation itself.
 * **Locality** allows for finer accesses
 * **Intra-query parallelism**
@@ -489,7 +481,7 @@ We need to choose the degree of fragmentation, from tuples/attributes to relatio
 If $\mathrm{\frac{ReadOnlyQueries}{UpdateQueries}} >> 1$ then replication is advantageous, otherwise it may cause problems.
 
 ### Information Requirements
-A lot of factors affect the coices toward an optimal design:
+A lot of factors affect the choices toward an optimal design:
 * Logical organization of the DB
 * Location of DBMS applications
 * How applications access the DB
@@ -526,6 +518,54 @@ And eliminates unnecessary work, ex if $A_1 \bowtie B_1 = \empty$ we can skip it
 ### Operations on VF
 * Reduction: Ignore the reduction on fragments where their attributes do not intersect the projection attributes 
 
+## Transactions
+A Transaction is a unit of the program execution that accesses(read) or updates(write) data items. Ex: Transfer 50€ from account A to B
+Issues: System failure mid-execution, concurrent execution of multiple transactions
 
+A transaction takes the database in a consistent state and leaves the database in a consistent state (PK, FK, integrity constraints satisfied). During the transactions these constrainsts can be broken
 
+The transaction manager schedules transactions in order to execute them as fast as possible (exploits concurrency) and such that the result is the same as executing them serially.
 
+### Transactions as DAG
+We model transactions as DAGs, with write and read nodes.
+
+Conflicting nodes: Nodes that do not have a path between them but access the same resouce and at least one of these accesses is a write.
+
+We consider DAGs which:
+* 1 node has 1 outgoing arrow. Starting node
+* 1 node has 1 ingoing arrow. Final node
+* All other nodes have 1 ingoing and outgoing arrow.
+
+These DAGs do not have conflicting nodes.
+
+## Histories
+A **history** h over a set of transactions $t_1, \dots , t_n$ is a DAG which is obtained by putting together all the DAGs of $t_1, \dots , t_n$ and s.t. a path exists between every pair of conflicting nodes.
+
+A history has n final nodes, one for each transaction, while a transaction has only 1 final node.
+
+A **serial history** is a history where there is no interleaving between the transactions, there can be multiple serial histories from a set of transactions.
+
+A **serializable history** is a history that is **conflict equivalent** to a serial one.
+
+2 histories are **conflict equivalent** if thery are built over the same set of vertex/nodes and the precedence order of every 2 conflicting nodes is preserved.
+
+The execution manager gets as input an history and makes sure to execute it in a serializable way.
+
+### Locking
+One phase locking: Does not guarantee serializability, a transaction is allowed to lock and unlock as it likes.  
+Two phase locking: Guarantees serializability, the transaction must not lock after having unlocked a value. Sometimes it causes cascade aborts.  
+Strict 2PL: Acquisition phase then all resources are released together at commit time, avoids cascade aborts but reduces concurrency.  
+
+### Deadlocks
+Locking mechanisms can cause deadlocks, these are harder to detect and fix than in a centralized database, for example site 1 locks a resouce of node 2 and vice versa, in this case the DB must reconstruct the Waif For Graph (WFG)
+
+### Failures
+* Transaction aborts (bad input, deadlock)
+* System failure: failure of processor, memory, power supply, but permanent memory is safe
+* Permanent memory content is lost
+* Communication failures: Lost/undeliverable messages
+
+### Recovery
+Out of place update: Copy the database elsewhere when it changes content, we always ahve a copy of the DB, very inefficent
+
+In place update: Keep a log of the changes on he database, on system failure redo or undo updates. The log updates before updating the database, this way we avoid the case of a transaction being executed but not being written on the log.
