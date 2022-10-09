@@ -1,0 +1,35 @@
+# Queries
+
+
+SELECT name || " " || surname AS name_and_surname, round(salary/1000, 2) AS salary_in_k
+FROM professor
+
+SELECT * 
+FROM course AS C, course_edition AS CE, professor AS P
+WHERE CE.course_code == C.code AND P.ssn == CE.professor_ssn AND P.department_name = "DMIF"
+
+Same as
+
+SELECT * 
+FROM course_edition AS CE 
+	JOIN course AS C ON CE.course_code = C.code
+    JOIN professor AS P ON CE.professor_ssn = P.ssn
+WHERE P.department_name = "DMIF"
+
+
+Extract information regarding all professors that have a salary higher than the lowest one
+
+SELECT DISTINCT p1.*
+FROM professor as p1
+		JOIN professor as p2 on p1.salary > p2.salary;
+		
+		
+Extract all students that have followed at least a course edition followed by the student with "ssn = 8550".
+
+select distinct student.*
+from student
+		join follows on follows.student_ssn = student.ssn
+where (course_code, course_year) in (select course_code, course_year
+						             from follows
+						             where follows.student_ssn = 8550
+						            );
